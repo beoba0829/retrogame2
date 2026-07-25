@@ -101,4 +101,10 @@ export const sound = {
     blip(659, 0.1, 'square', 0.4, 0.1);
     blip(784, 0.18, 'square', 0.4, 0.2);
   },
+  /** clean retro arcade confirmation PING (loading complete) */
+  ping() {
+    blip(1047, 0.05, 'sine', 0.5);
+    blip(1568, 0.14, 'sine', 0.42, 0.03);
+    blip(2093, 0.1, 'sine', 0.28, 0.06);
+  },
 };
