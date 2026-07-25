@@ -4,6 +4,7 @@ import { PixelButton } from '@/components/ui/PixelButton';
 import { Reveal } from '@/components/ui/Reveal';
 import { HillDivider } from '@/components/ui/HillDivider';
 import { sound } from '@/utils/sound';
+import { useInViewOnce } from '@/hooks/useInViewOnce';
 
 /**
  * COIN DASH — the playable arcade section.
@@ -19,6 +20,7 @@ export function CoinDash() {
   const [best, setBest] = useState(0);
   const [misses, setMisses] = useState(0);
   const [combo, setCombo] = useState(0);
+  const { ref: cabRef, inView: cabOn } = useInViewOnce<HTMLDivElement>({ threshold: 0.3 });
 
   const callbacks = {
     onStatus: setStatus,
@@ -56,7 +58,7 @@ export function CoinDash() {
 
         {/* ---------- ARCADE CABINET ---------- */}
         <Reveal delay={120} className="mt-10">
-          <div className="mx-auto max-w-3xl">
+          <div ref={cabRef} className={`arcade-cabinet mx-auto max-w-3xl ${cabOn ? 'arcade-on' : 'arcade-off'}`}>
             {/* marquee */}
             <div className="pixel-border relative flex items-center justify-center gap-3 bg-gradient-to-b from-pink to-pink-dark px-4 py-3 text-white">
               <span className="font-pixel text-[0.7rem] sm:text-[0.9rem] drop-shadow-[2px_2px_0_var(--ui-ink)]">
@@ -68,12 +70,12 @@ export function CoinDash() {
               {/* marquee bulbs */}
               <div className="absolute left-2 top-1/2 flex -translate-y-1/2 gap-1">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <span key={i} className="h-1.5 w-1.5 animate-twinkle bg-gold" style={{ animationDelay: `${i * 0.2}s` }} />
+                  <span key={i} className="arcade-bulb h-1.5 w-1.5 bg-gold" style={{ animationDelay: `${i * 0.2}s` }} />
                 ))}
               </div>
               <div className="absolute right-2 top-1/2 flex -translate-y-1/2 gap-1">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <span key={i} className="h-1.5 w-1.5 animate-twinkle bg-gold" style={{ animationDelay: `${i * 0.2 + 0.1}s` }} />
+                  <span key={i} className="arcade-bulb h-1.5 w-1.5 bg-gold" style={{ animationDelay: `${i * 0.2 + 0.1}s` }} />
                 ))}
               </div>
             </div>
@@ -90,13 +92,15 @@ export function CoinDash() {
 
               {/* the screen (canvas) */}
               <div
-                className="relative overflow-hidden bg-black"
+                className="arcade-screen relative overflow-hidden bg-black"
                 style={{ aspectRatio: '8 / 5' }}
               >
                 <CoinDashGame ref={gameRef} callbacks={callbacks} />
+                {/* power-on flash */}
+                <div className="arcade-powerflash pointer-events-none absolute inset-0" aria-hidden />
                 {/* scanlines on the screen */}
                 <div
-                  className="pointer-events-none absolute inset-0 opacity-40"
+                  className="arcade-scanlines pointer-events-none absolute inset-0 opacity-40"
                   style={{
                     background:
                       'repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px)',

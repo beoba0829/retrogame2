@@ -99,10 +99,10 @@ export function Hero() {
 
       {/* decorative spinning coins in corners */}
       <div className="pointer-events-none absolute left-4 top-24 hidden sm:block">
-        <PixelSprite grid={COIN_FRONT} palette={PALETTE} pixel={3} className="animate-bob" />
+        <PixelSprite grid={COIN_FRONT} palette={PALETTE} pixel={3} className="animate-bob coin-shimmer coin-sparkle" />
       </div>
       <div className="pointer-events-none absolute right-6 top-32 hidden sm:block">
-        <PixelSprite grid={COIN_FRONT} palette={PALETTE} pixel={3} className="animate-floaty" />
+        <PixelSprite grid={COIN_FRONT} palette={PALETTE} pixel={3} className="animate-floaty coin-shimmer coin-sparkle" style={{ ['--sparkle-delay' as string]: '2.4s' }} />
       </div>
     </section>
   );
