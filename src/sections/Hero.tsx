@@ -6,6 +6,7 @@ import { PixelSprite } from '@/components/sprites/PixelSprite';
 import { COIN_FRONT, PALETTE } from '@/components/sprites/sprites';
 import { useCopyState } from '@/hooks';
 import { sound } from '@/utils/sound';
+import { CoinMagnetCinematic } from '@/components/ui/CoinMagnetCinematic';
 
 const CONTRACT = 'BUD5yD8mQK9pX2vN7rL4tZ3fW8hJ6cE1aF0sG7iU2oP';
 
@@ -16,6 +17,7 @@ export function Hero() {
   return (
     <section id="top" className="relative min-h-screen w-full overflow-hidden">
       <HeroCanvas />
+      <CoinMagnetCinematic />
 
       {/* content */}
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-4 pt-28 pb-16 text-center">

@@ -834,6 +834,14 @@ body,
   /* sprite handled inline; container just hosts the fixed overlay */
 }
 
+/* ---------- Coin magnet cinematic ---------- */
+@keyframes getrich-rise {
+  0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.9); }
+  20%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  70%  { opacity: 1; transform: translate(-50%, -14px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -28px) scale(0.95); }
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
