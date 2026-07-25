@@ -1,0 +1,68 @@
+import { memo } from 'react';
+
+/**
+ * Grid-based pixel art renderer.
+ * Each sprite is defined as an array of equal-length strings.
+ * Each character maps to a color via the `palette` map.
+ * ' ' or '.' = transparent.
+ *
+ * Renders crisp SVG <rect>s with shape-rendering: crispEdges.
+ */
+export interface PixelSpriteProps {
+  grid: string[];
+  palette: Record<string, string>;
+  /** pixel size in px at 1x scale (scales with `scale`) */
+  pixel?: number;
+  scale?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  title?: string;
+}
+
+export const PixelSprite = memo(function PixelSprite({
+  grid,
+  palette,
+  pixel = 4,
+  scale = 1,
+  className,
+  style,
+  title,
+}: PixelSpriteProps) {
+  const w = grid[0]?.length ?? 0;
+  const h = grid.length;
+  const px = pixel * scale;
+  const rects: React.ReactElement[] = [];
+  for (let y = 0; y < h; y++) {
+    const row = grid[y];
+    for (let x = 0; x < w; x++) {
+      const ch = row[x];
+      if (!ch || ch === ' ' || ch === '.') continue;
+      const color = palette[ch];
+      if (!color) continue;
+      rects.push(
+        <rect
+          key={`${x}-${y}`}
+          x={x * px}
+          y={y * px}
+          width={px}
+          height={px}
+          fill={color}
+        />
+      );
+    }
+  }
+  return (
+    <svg
+      width={w * px}
+      height={h * px}
+      viewBox={`0 0 ${w * px} ${h * px}`}
+      className={className}
+      style={{ imageRendering: 'pixelated', display: 'block', ...style }}
+      shapeRendering="crispEdges"
+      role={title ? 'img' : 'presentation'}
+      aria-label={title}
+    >
+      {rects}
+    </svg>
+  );
+});
