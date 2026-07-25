@@ -110,8 +110,15 @@ export function CoinMagnetCinematic() {
   // Main effect: orchestrate phases + rAF loop.
   useEffect(() => {
     if (reduced) return;
+
+    // In dev, ignore the one-shot guard so the cinematic replays on refresh.
+    if (import.meta.env.DEV) {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
     if (sessionStorage.getItem(SESSION_KEY)) return;
     sessionStorage.setItem(SESSION_KEY, '1');
+
+    if (import.meta.env.DEV) console.log('Coin Magnet mounted');
 
     let timers: number[] = [];
     let cancelled = false;
@@ -129,46 +136,67 @@ export function CoinMagnetCinematic() {
       return true;
     };
 
-    // Wait for hero to be visible, then start sequence.
-    const startTimer = window.setTimeout(() => {
+    // Wait for the mascot element to exist before starting the cinematic.
+    // The overlay container is always mounted (see render below), so
+    // containerRef.current is available; we just need the mascot to paint.
+    const waitForMascot = () => {
       if (cancelled) return;
-      if (!measure()) return;
-      setPhase('first');
-      // Step 1: single coin
-      const c = mascotCenter.current;
-      spawnCoin(c.x + (Math.random() - 0.5) * 60, 1);
-      lookUpRef.current = true;
-      sound.tap();
+      if (measure()) {
+        if (import.meta.env.DEV) console.log('Mascot measured', mascotCenter.current);
+        startCinematic();
+      } else {
+        requestAnimationFrame(waitForMascot);
+      }
+    };
 
-      // Step 2: more coins, randomized
+    // Start the sequence ~1.8s after the mascot is measured.
+    const startCinematic = () => {
+      if (import.meta.env.DEV) console.log('Starting cinematic');
       timers.push(
         window.setTimeout(() => {
           if (cancelled) return;
-          setPhase('rain');
-          for (let i = 0; i < 5; i++) {
-            const delay = i * 180 + Math.random() * 220;
-            timers.push(
-              window.setTimeout(() => {
-                if (cancelled) return;
-                spawnCoin(c.x + (Math.random() - 0.5) * 260, 0.9 + Math.random() * 0.3);
-              }, delay)
-            );
-          }
-        }, 900)
-      );
+          setPhase('first');
+          // Step 1: single coin
+          const c = mascotCenter.current;
+          spawnCoin(c.x + (Math.random() - 0.5) * 60, 1);
+          lookUpRef.current = true;
+          sound.tap();
 
-      // Step 3: magnet mode
-      timers.push(
-        window.setTimeout(() => {
-          if (cancelled) return;
-          setPhase('magnet');
-          sound.confirm();
-          coinsRef.current.forEach((co) => {
-            if (co.state === 'falling') co.state = 'magnetized';
-          });
-        }, 2900)
+          // Step 2: more coins, randomized
+          timers.push(
+            window.setTimeout(() => {
+              if (cancelled) return;
+              setPhase('rain');
+              for (let i = 0; i < 5; i++) {
+                const delay = i * 180 + Math.random() * 220;
+                timers.push(
+                  window.setTimeout(() => {
+                    if (cancelled) return;
+                    spawnCoin(c.x + (Math.random() - 0.5) * 260, 0.9 + Math.random() * 0.3);
+                  }, delay)
+                );
+              }
+            }, 900)
+          );
+
+          // Step 3: magnet mode
+          timers.push(
+            window.setTimeout(() => {
+              if (cancelled) return;
+              if (import.meta.env.DEV) console.log('Entering magnet phase');
+              setPhase('magnet');
+              sound.confirm();
+              coinsRef.current.forEach((co) => {
+                if (co.state === 'falling') co.state = 'magnetized';
+              });
+            }, 2900)
+          );
+        }, 1800)
       );
-    }, 1800);
+    };
+
+    // Kick off the wait-for-mascot loop.
+    requestAnimationFrame(waitForMascot);
 
     // rAF loop
     let last = performance.now();
@@ -228,9 +256,7 @@ export function CoinMagnetCinematic() {
           }
         }
       }
-      // remove done coins after a beat
-      coinsRef.current = coins.filter((co) => co.state !== 'done' || true);
-      // actually drop done coins from render
+      // remove done coins from render
       coinsRef.current = coins.filter((co) => co.state !== 'done');
 
       // update sparkles
@@ -260,6 +286,7 @@ export function CoinMagnetCinematic() {
                 if (cancelled) return;
                 setPhase('done');
                 lookUpRef.current = false;
+                if (import.meta.env.DEV) console.log('Animation finished');
               }, 1100)
             );
           }, 350)
@@ -298,17 +325,21 @@ export function CoinMagnetCinematic() {
   }, [reduced]);
 
   if (reduced) return null;
-  if (phase === 'done' || phase === 'wait') return null;
+  if (phase === 'done') return null;
 
   const shake = shakeRef.current;
   const shakeX = shake > 0 ? (Math.random() - 0.5) * 6 * shake : 0;
   const shakeY = shake > 0 ? (Math.random() - 0.5) * 6 * shake : 0;
+  const waiting = phase === 'wait';
 
   return (
     <div
       ref={containerRef}
       className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
-      style={{ transform: `translate(${shakeX}px, ${shakeY}px)` }}
+      style={{
+        transform: `translate(${shakeX}px, ${shakeY}px)`,
+        visibility: waiting ? 'hidden' : 'visible',
+      }}
       aria-hidden
     >
       {/* radial glow at mascot */}
